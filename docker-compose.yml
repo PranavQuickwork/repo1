@@ -1,0 +1,47 @@
+
+services:
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    ports:
+      - "27017:27017" 
+    networks:
+      - app-network
+    volumes:
+      - mongo-data:/data/db 
+
+  backend:
+    build:
+      context: ./backend
+    container_name: backend
+    ports:
+      - "5001:5001" 
+    networks:
+      - app-network
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/taskdb 
+      - PORT=5001 
+    depends_on:
+      - mongo 
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    ports:
+      - "3000:3000" 
+    networks:
+      - app-network
+    environment:
+      - REACT_APP_API_URL=http://localhost:5001/api 
+    depends_on:
+      - backend  
+    stdin_open: true 
+    tty: true
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
